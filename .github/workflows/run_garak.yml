@@ -1,0 +1,31 @@
+name: Run Garak 
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  automatic_scan:
+    runs-on: [ self-hosted ] 
+    
+    steps:
+      - name: checkout repo content
+        uses: actions/checkout@v3
+             
+      - name: Scan with garak
+        continue-on-error: true
+        env:
+            REST_API_KEY: ${{ secrets.JWT_TOKEN }} 
+        run: |
+          garak --model_type huggingface --model_name gpt2 --probes test.Blank
+              
+      - name: Upload garak report
+        uses: actions/upload-artifact@v3
+        with:
+            name: garak_reports
+            path: |
+                $(pwd)/*.html
+              
+
+
+            
