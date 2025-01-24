@@ -7,7 +7,7 @@ from pyrit.common import initialize_pyrit, IN_MEMORY
 import asyncio
 import time
 
-async def generate_from_empty_prompt(model_id: str, prompt_list: list[str]):
+async def generate_from_prompts(model_id: str, prompt_list: list[str]):
     initialize_pyrit(IN_MEMORY)
     
     hf_token = os.getenv("HUGGINGFACE_TOKEN")
@@ -45,10 +45,12 @@ async def generate_from_empty_prompt(model_id: str, prompt_list: list[str]):
 
         # Print the conversations
         await orchestrator.print_conversations_async()  # type: ignore
-
+        return avg_time
+    
     except Exception as e:
         print(f"An error occurred with model {model_id}: {e}\n")
         model_times[model_id] = None
+    
 
     # Print the model average time
     if model_times[model_id] is not None:
@@ -59,9 +61,15 @@ async def generate_from_empty_prompt(model_id: str, prompt_list: list[str]):
     memory = CentralMemory.get_memory_instance()
     memory.dispose_engine()
 
-def run_garak(model_type, model_name, prompt):
+def run_garak(model_type, model_name):
     start_time = time.time()
     subprocess.run(["garak", "--model_type", model_type, "--model_name", model_name, "--probes", "test.TestOneProbe"], check=True)
+    end_time = time.time()
+    return end_time - start_time
+
+def run_promptfoo(model_type, model_name, prompt_file):
+    start_time = time.time()
+    subprocess.run(["promptfoo", "eval", "--providers", f"{model_type}:text-generation:{model_name}", "--prompts", prompt_file], check=True)
     end_time = time.time()
     return end_time - start_time
 
@@ -71,8 +79,9 @@ models = [
             #"HuggingFaceTB/SmolLM-135M-Instruct", 
             #"HuggingFaceTB/SmolLM-360M-Instruct",
             #"microsoft/Phi-3-mini-4k-instruct",
-            "Qwen/Qwen2-0.5B-Instruct",
-            #"Qwen/Qwen2-1.5B-Instruct"
+            #"Qwen/Qwen2-0.5B-Instruct",
+            #"Qwen/Qwen2-1.5B-Instruct",
+            "gpt2"
     ]
 
 prompts = ["write a poem about the weather"]
@@ -83,14 +92,14 @@ async def main():
         for prompt in prompts:
             print(f"Testing model: {model_name} with prompt: {prompt}")
 
-            # Measure time for generate_from_empty_prompt
-            await generate_from_empty_prompt(model_name, [prompt])
-
-            # Measure time for Garak
-            time_garak = run_garak("huggingface", model_name, prompt)
-
-            # Print the results
-            print(f"Time taken by Garak: {time_garak} seconds")
+            time_pyrit = await generate_from_prompts(model_name, [prompt])
+            print(f"Time taken by PyRit: {time_pyrit} seconds")
+            #time_garak = run_garak("huggingface", model_name)
+            #print(f"Time taken by Garak: {time_garak} seconds")
+            #print("-" * 50)
+            
+            time_promptfoo = run_promptfoo("huggingface", model_name, "prompts.txt")
+            print(f"Time taken by Promptfoo: {time_promptfoo} seconds")
             print("-" * 50)
 
 if __name__ == "__main__":
