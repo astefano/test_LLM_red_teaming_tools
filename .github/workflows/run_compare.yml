@@ -1,0 +1,29 @@
+name: Run Compare Script
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  automatic_scan:
+    runs-on: [ self-hosted ] 
+    
+    steps:
+      - name: checkout repo content
+        uses: actions/checkout@v3
+      
+      - name: Generate Garak config file
+        continue-on-error: true
+        env:
+            GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }} 
+        run: |
+          python generate_garak_config.py
+
+      - name: Compare running times
+        continue-on-error: true
+        env:
+            GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }} 
+        run: |
+          python compare_times_gemini.py
+
+            
