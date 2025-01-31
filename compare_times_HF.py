@@ -86,9 +86,9 @@ def run_promptfoo(model_type, model_name, prompt_file):
 
 # Define the models and prompts
 models = [
-            "HuggingFaceTB/SmolLM-1.7B-Instruct", 
+            #"HuggingFaceTB/SmolLM-1.7B-Instruct", 
+            #"HuggingFaceTB/SmolLM-360M-Instruct",
             "HuggingFaceTB/SmolLM-135M-Instruct", 
-            "HuggingFaceTB/SmolLM-360M-Instruct",
             "microsoft/Phi-3-mini-4k-instruct",
             "Qwen/Qwen2-0.5B-Instruct",
             "Qwen/Qwen2-1.5B-Instruct",
